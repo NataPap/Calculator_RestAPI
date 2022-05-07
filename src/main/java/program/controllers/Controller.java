@@ -1,11 +1,9 @@
 package program.controllers;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import program.entities.Expression;
+import program.entities.ExpressionNotFoundException;
 import program.entities.Lexeme;
 import program.entities.LexemeBuffer;
 import program.repositories.CalcRepository;
@@ -13,9 +11,12 @@ import program.repositories.CalcRepository;
 import java.util.ArrayList;
 import java.util.List;
 
+
+
 @RestController
 @RequiredArgsConstructor
 public class Controller {
+
     private final CalcRepository calcRepository;
     public enum LexemeType {
         LEFT_BRACKET,RIGHT_BRACKET,PLUS,MINUS,MUL,DIV,NUMBER,EOF
@@ -141,6 +142,9 @@ public class Controller {
     public Double factor (LexemeBuffer lexemes) {
     Lexeme lexeme=lexemes.next();
     switch (lexeme.type) {
+        case MINUS:
+            Double val = factor(lexemes);
+            return -val;
         case NUMBER:
             return Double.parseDouble(lexeme.value);
         case LEFT_BRACKET:
@@ -156,4 +160,26 @@ public class Controller {
                     +" at position"+ lexemes.getPos());
     }
     }
+
+//    @GetMapping("/{id}")
+//    public Expression singleExpression(@PathVariable int id) {
+//        return CalcRepository.findById(id)
+//                .orElseThrow(() -> new ExpressionNotFoundException(id));
+//    }
+//
+//    @PutMapping("/{id}")
+//    Expression replaceExpression(@RequestBody Expression newExpression, @PathVariable int id) {
+//
+//
+//        return CalcRepository.findById(id)
+//                .map(exp -> {
+//                    exp.setExpression(newExpression.getExpression());
+//                    exp.setResult(newExpression.getResult());
+//                    return CalcRepository.save(exp);
+//                })
+//                .orElseGet(() -> {
+//                    newExpression.setId(id);
+//                    return CalcRepository.save(newExpression);
+//                });
+//    }
 }
