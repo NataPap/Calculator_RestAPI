@@ -1,13 +1,13 @@
 package program.controllers;
 
 import lombok.RequiredArgsConstructor;
-import lombok.var;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import program.entities.Expression;
 import program.entities.Lexeme;
+import program.entities.LexemeBuffer;
 import program.repositories.CalcRepository;
 
 import java.util.ArrayList;
@@ -25,14 +25,17 @@ public class Controller {
         public List<Expression> index() {
             return calcRepository.findAll();
     }
+
     @PostMapping("/add")
-    Expression newExpression(@RequestBody  String newExp) {
+    public Expression newExpression(@RequestBody  String newExp) {
         List<Lexeme> lexemes = analyzeOfLexeme(newExp);
-
-
-
-Expression newExpression=new Expression();
-                return calcRepository.save(newExpression);
+        LexemeBuffer lexemeBuffer = new LexemeBuffer(lexemes);
+        Double res=expr(lexemeBuffer);
+        System.out.println(res);
+        Expression newExpression=new Expression();
+        newExpression.setExpression(newExp);
+        newExpression.setResult(res);
+        return calcRepository.save(newExpression);
     }
 
     public List<Lexeme> analyzeOfLexeme(String expression) {
@@ -71,11 +74,11 @@ Expression newExpression=new Expression();
                         do {
                             sb.append(c);
                             position++;
-                            if(position>expression.length()){
+                            if(position>=expression.length()){
                                 break;
                             }
                             c=expression.charAt(position);
-                        }while (c<='9' && c>='0');
+                        }while (c<='9' && c>='0'|| c=='.');
                         lexemes.add(new Lexeme(LexemeType.NUMBER,sb.toString()));
                     }else {
                         if(c!=' '){
@@ -89,5 +92,68 @@ Expression newExpression=new Expression();
         return lexemes;
     }
 
+    public Double expr (LexemeBuffer lexemes) {
+        Lexeme lexeme = lexemes.next();
+        if(lexeme.type==LexemeType.EOF) {
+            return 0.0;
+        } else {
+            lexemes.back();
+            return plusMinus(lexemes);
+        }
+    }
 
+    public Double plusMinus (LexemeBuffer lexemes) {
+        Double value = mulDiv(lexemes);
+        while (true) {
+            Lexeme lexeme=lexemes.next();
+            switch (lexeme.type){
+                case PLUS:
+                    value+=mulDiv (lexemes);
+                    break;
+                case MINUS:
+                    value-=mulDiv(lexemes);
+                    break;
+                default:
+                    lexemes.back();
+                    return value;
+            }
+        }
+    }
+
+    public Double mulDiv (LexemeBuffer lexemes) {
+        Double value = factor(lexemes);
+        while (true) {
+            Lexeme lexeme=lexemes.next();
+            switch (lexeme.type){
+                case MUL:
+                    value*=factor (lexemes);
+                    break;
+                case DIV:
+                    value/=factor(lexemes);
+                    break;
+                default:
+                    lexemes.back();
+                    return value;
+            }
+        }
+    }
+
+    public Double factor (LexemeBuffer lexemes) {
+    Lexeme lexeme=lexemes.next();
+    switch (lexeme.type) {
+        case NUMBER:
+            return Double.parseDouble(lexeme.value);
+        case LEFT_BRACKET:
+            Double value = expr (lexemes);
+            lexeme=lexemes.next();
+            if(lexeme.type!=LexemeType.RIGHT_BRACKET) {
+                throw new RuntimeException("Unexpected token:" + lexeme.value
+                +" at position"+ lexemes.getPos());
+            }
+            return value;
+        default:
+            throw new RuntimeException("Unexpected token:" + lexeme.value
+                    +" at position"+ lexemes.getPos());
+    }
+    }
 }

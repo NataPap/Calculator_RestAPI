@@ -8,8 +8,8 @@ import java.util.List;
 
 @Data
 public class Lexeme {
-    Controller.LexemeType type;
-    String value;
+    public Controller.LexemeType type;
+    public String value;
     public Lexeme(Controller.LexemeType type, String value){
         this.type=type;
         this.value=value;
