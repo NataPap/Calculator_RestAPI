@@ -21,7 +21,10 @@ public class Controller {
             return calcRepository.findAll();
     }
     @PostMapping("/add")
-    Expression newExpression(@RequestBody  Expression newExpression) {
+    Expression newExpression(@RequestBody  String newExp) {
+Expression newExpression=new Expression();
+
+
                 return calcRepository.save(newExpression);
     }
 
