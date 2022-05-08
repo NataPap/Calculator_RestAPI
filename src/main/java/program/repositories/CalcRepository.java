@@ -12,4 +12,5 @@ import java.util.List;
 
 public interface CalcRepository extends JpaRepository<Expression, Integer> {
     List<Expression> findByResult (@Param("result") Double res);
+    List<Expression> findByExpression (@Param("expression") String exp);
 }
