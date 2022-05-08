@@ -82,7 +82,7 @@ public class Controller {
                         lexemes.add(new Lexeme(LexemeType.NUMBER,sb.toString()));
                     }else {
                         if(c!=' '){
-                            throw new RuntimeException("Unexpected character:"+c);
+                            throw new RuntimeException("Incorrect syntax of the expression:"+c);
                         }
                         position++;
                     }
@@ -141,19 +141,22 @@ public class Controller {
     public Double factor (LexemeBuffer lexemes) {
         Lexeme lexeme=lexemes.next();
         switch (lexeme.type) {
+            case MINUS:
+                Double val = factor(lexemes);
+                return -val;
             case NUMBER:
                 return Double.parseDouble(lexeme.value);
             case LEFT_BRACKET:
                 Double value = expr (lexemes);
                 lexeme=lexemes.next();
                 if(lexeme.type!=LexemeType.RIGHT_BRACKET) {
-                    throw new RuntimeException("Unexpected token:" + lexeme.value
-                            +" at position"+ lexemes.getPos());
+                    throw new RuntimeException("No right bracket:" + lexeme.value
+                            +" at position "+ lexemes.getPos());
                 }
                 return value;
             default:
-                throw new RuntimeException("Unexpected token:" + lexeme.value
-                        +" at position"+ lexemes.getPos());
+                throw new RuntimeException("Unexpected expression:" + lexeme.value
+                        +" at position "+ lexemes.getPos());
         }
     }
 
