@@ -10,6 +10,8 @@ import javax.persistence.*;
 @NoArgsConstructor
 @Data
 @Entity
+//@NamedQuery(name = "Expressions.findByResult", query = "SELECT exp FROM tbl_expressions" +
+//        " WHERE exp.result = key")
 @Table(name = "tbl_expressions")
 public class Expression {
     @Id
